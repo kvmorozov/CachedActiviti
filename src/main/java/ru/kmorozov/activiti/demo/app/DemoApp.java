@@ -20,7 +20,9 @@ import java.util.Map;
 /**
  * Created by sbt-morozov-kv on 12.09.2016.
  */
-@SpringBootApplication(scanBasePackages = "ru.kmorozov.activiti.demo.data, ru.kmorozov.activiti.demo.app")
+@SpringBootApplication(scanBasePackages = "ru.kmorozov.activiti.demo.data," +
+        "ru.kmorozov.activiti.demo.app," +
+        "ru.kmorozov.activiti.demo.config")
 @EnableJpaRepositories(basePackageClasses = ApplicantRepository.class)
 public class DemoApp {
 
