@@ -64,6 +64,12 @@
             <artifactId>activiti-spring-boot-starter-jpa</artifactId>
             <version>${activiti.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.mybatis.caches</groupId>
+            <artifactId>mybatis-ignite</artifactId>
+            <version>1.0.2</version>
+        </dependency>
     </dependencies>
 
 </project>

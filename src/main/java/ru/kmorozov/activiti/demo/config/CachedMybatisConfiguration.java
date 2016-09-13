@@ -1,6 +1,7 @@
 package ru.kmorozov.activiti.demo.config;
 
 import org.activiti.spring.SpringProcessEngineConfiguration;
+import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.InvocationHandler;
@@ -26,6 +27,8 @@ public class CachedMybatisConfiguration {
 
         CachedConfigurationHandler(Configuration configuration) {
             this.configuration = configuration;
+
+            this.configuration.addCache(null);
         }
 
         @Override
@@ -33,7 +36,7 @@ public class CachedMybatisConfiguration {
             Object originalResult = method.invoke(configuration, args);
 
             if (method.getName().equals("getMappedStatement")) {
-
+                CachedMappedStatement.getCachedMappedStatement((MappedStatement) originalResult);
             }
 
             return originalResult;
