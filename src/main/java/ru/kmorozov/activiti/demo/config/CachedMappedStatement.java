@@ -1,9 +1,9 @@
 package ru.kmorozov.activiti.demo.config;
 
-import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.springframework.cglib.proxy.Enhancer;
-import org.springframework.cglib.proxy.InvocationHandler;
+import org.springframework.cglib.proxy.MethodInterceptor;
+import org.springframework.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Method;
 
@@ -14,29 +14,27 @@ public class CachedMappedStatement {
 
     public static MappedStatement getCachedMappedStatement(MappedStatement mappedStatement) {
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(SpringProcessEngineConfiguration.class);
-        enhancer.setCallback(new CachedMappedStatementHandler(mappedStatement));
+        enhancer.setSuperclass(MappedStatement.class);
+        enhancer.setCallback(new CachedMappedStatementHandler());
 
         return (MappedStatement) enhancer.create();
     }
 
-    private static class CachedMappedStatementHandler implements InvocationHandler {
+    public static Class<MappedStatement> getCachedMappedStatementClass() {
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(MappedStatement.class);
+        enhancer.setCallback(new CachedMappedStatementHandler());
 
-        private MappedStatement mappedStatement;
+        return enhancer.createClass();
+    }
 
-        CachedMappedStatementHandler(MappedStatement mappedStatement) {
-            this.mappedStatement = mappedStatement;
-        }
-
+    private static class CachedMappedStatementHandler implements MethodInterceptor {
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            Object originalResult = method.invoke(mappedStatement, args);
-
-            if (method.getName().equals("useCache")) {
+        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+            if (method.getName().equals("isUseCache")) {
                 return true;
-            }
-
-            return originalResult;
+            } else
+                return proxy.invokeSuper(obj, args);
         }
     }
 }

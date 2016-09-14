@@ -1,4 +1,4 @@
-package ru.kmorozov.activiti.demo.app;
+package ru.kmorozov.activiti.demo;
 
 import org.activiti.engine.IdentityService;
 import org.activiti.engine.RepositoryService;
@@ -20,9 +20,7 @@ import java.util.Map;
 /**
  * Created by sbt-morozov-kv on 12.09.2016.
  */
-@SpringBootApplication(scanBasePackages = "ru.kmorozov.activiti.demo.data," +
-        "ru.kmorozov.activiti.demo.app," +
-        "ru.kmorozov.activiti.demo.config")
+@SpringBootApplication()
 @EnableJpaRepositories(basePackageClasses = ApplicantRepository.class)
 public class DemoApp {
 

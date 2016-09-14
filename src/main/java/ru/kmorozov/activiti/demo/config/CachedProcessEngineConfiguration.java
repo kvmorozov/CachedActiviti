@@ -2,8 +2,7 @@ package ru.kmorozov.activiti.demo.config;
 
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.apache.ibatis.session.Configuration;
-import org.springframework.cglib.proxy.Enhancer;
-import org.springframework.cglib.proxy.InvocationHandler;
+import org.springframework.cglib.proxy.*;
 
 import java.lang.reflect.Method;
 
@@ -14,29 +13,27 @@ public class CachedProcessEngineConfiguration {
 
     public static SpringProcessEngineConfiguration getCachedConfig(SpringProcessEngineConfiguration parentConfig) {
         Enhancer enhancer = new Enhancer();
+
+        CallbackHelper callbackHelper = new CallbackHelper(SpringProcessEngineConfiguration.class, new Class[0]) {
+            @Override
+            protected Object getCallback(Method method) {
+                if (method.getName().equals("initMybatisConfiguration")) {
+                    return new MethodInterceptor() {
+                        @Override
+                        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+                            return CachedMybatisConfiguration.getCachedConfiguration((Configuration) proxy.invokeSuper(obj, args));
+                        }
+                    };
+                } else {
+                    return NoOp.INSTANCE;
+                }
+            }
+        };
+
         enhancer.setSuperclass(SpringProcessEngineConfiguration.class);
-        enhancer.setCallback(new CachedProcessEngineHandler(parentConfig));
+        enhancer.setCallbackFilter(callbackHelper);
+        enhancer.setCallbacks(callbackHelper.getCallbacks());
 
         return (SpringProcessEngineConfiguration) enhancer.create();
-    }
-
-    private static class CachedProcessEngineHandler implements InvocationHandler {
-
-        private SpringProcessEngineConfiguration config;
-
-        CachedProcessEngineHandler(SpringProcessEngineConfiguration config) {
-            this.config = config;
-        }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            Object originalResult = method.invoke(config, args);
-
-            if (method.getName().equals("initMybatisConfiguration")) {
-                return CachedMybatisConfiguration.getCachedConfiguration((Configuration) originalResult);
-            }
-
-            return originalResult;
-        }
     }
 }

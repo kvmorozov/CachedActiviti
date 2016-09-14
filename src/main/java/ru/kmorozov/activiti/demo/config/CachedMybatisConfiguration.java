@@ -3,6 +3,7 @@ package ru.kmorozov.activiti.demo.config;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
+import org.mybatis.caches.ignite.IgniteCacheAdapter;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.InvocationHandler;
 
@@ -15,7 +16,7 @@ public class CachedMybatisConfiguration {
 
     public static Configuration getCachedConfiguration(Configuration configuration) {
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(SpringProcessEngineConfiguration.class);
+        enhancer.setSuperclass(Configuration.class);
         enhancer.setCallback(new CachedConfigurationHandler(configuration));
 
         return (Configuration) enhancer.create();
@@ -28,7 +29,7 @@ public class CachedMybatisConfiguration {
         CachedConfigurationHandler(Configuration configuration) {
             this.configuration = configuration;
 
-            this.configuration.addCache(null);
+            this.configuration.addCache(new IgniteCacheAdapter("testIgnite"));
         }
 
         @Override
