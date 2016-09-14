@@ -102,14 +102,6 @@ public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.Jp
         return (MappedStatement) enhancer.create();
     }
 
-    private Class<MappedStatement> getCachedMappedStatementClass() {
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(MappedStatement.class);
-        enhancer.setCallback(new CachedMappedStatementHandler());
-
-        return enhancer.createClass();
-    }
-
     private static class CachedMappedStatementHandler implements MethodInterceptor {
         @Override
         public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
