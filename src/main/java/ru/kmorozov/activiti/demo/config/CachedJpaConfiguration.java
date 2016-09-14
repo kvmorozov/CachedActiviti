@@ -4,8 +4,8 @@ import org.activiti.spring.SpringAsyncExecutor;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.activiti.spring.boot.ActivitiProperties;
 import org.activiti.spring.boot.JpaProcessEngineAutoConfiguration;
+import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.mybatis.caches.ignite.IgniteCacheAdapter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -13,6 +13,7 @@ import org.springframework.cglib.proxy.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.kmorozov.activiti.demo.ignite.IgniteCacheAdapter;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -27,6 +28,8 @@ import java.lang.reflect.Method;
 @ConditionalOnClass(name = "javax.persistence.EntityManagerFactory")
 @EnableConfigurationProperties(ActivitiProperties.class)
 public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.JpaConfiguration {
+
+    private Cache defaultCache;
 
     @Bean
     @ConditionalOnMissingBean
@@ -72,14 +75,14 @@ public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.Jp
         return (org.apache.ibatis.session.Configuration) enhancer.create();
     }
 
-    private static class CachedConfigurationHandler implements InvocationHandler {
+    private class CachedConfigurationHandler implements InvocationHandler {
 
         private org.apache.ibatis.session.Configuration configuration;
 
         CachedConfigurationHandler(org.apache.ibatis.session.Configuration configuration) {
             this.configuration = configuration;
 
-            this.configuration.addCache(new IgniteCacheAdapter("testIgnite"));
+            this.configuration.addCache(defaultCache = new IgniteCacheAdapter("testIgnite"));
         }
 
         @Override
@@ -94,21 +97,18 @@ public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.Jp
         }
     }
 
-    public static MappedStatement getCachedMappedStatement(MappedStatement mappedStatement) {
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(MappedStatement.class);
-        enhancer.setCallback(new CachedMappedStatementHandler());
-
-        return (MappedStatement) enhancer.create();
-    }
-
-    private static class CachedMappedStatementHandler implements MethodInterceptor {
-        @Override
-        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-            if (method.getName().equals("isUseCache")) {
-                return true;
-            } else
-                return proxy.invokeSuper(obj, args);
-        }
+    private MappedStatement getCachedMappedStatement(MappedStatement mappedStatement) {
+        return new MappedStatement
+                .Builder(mappedStatement.getConfiguration(), mappedStatement.getId(), mappedStatement.getSqlSource(), mappedStatement.getSqlCommandType())
+                .databaseId(mappedStatement.getDatabaseId())
+                .resource(mappedStatement.getResource())
+                .fetchSize(mappedStatement.getFetchSize())
+                .timeout(mappedStatement.getTimeout())
+                .statementType(mappedStatement.getStatementType())
+                .resultSetType(mappedStatement.getResultSetType())
+                .parameterMap(mappedStatement.getParameterMap())
+                .cache(defaultCache)
+                .useCache(true)
+                .build();
     }
 }
