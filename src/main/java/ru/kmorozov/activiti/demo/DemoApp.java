@@ -32,6 +32,11 @@ public class DemoApp {
     CommandLineRunner init(final RepositoryService repositoryService,
                            final RuntimeService runtimeService,
                            final TaskService taskService) {
+        repositoryService.createDeployment()
+                .addClasspathResource("processes/Developer_Hiring.bpmn20.xml")
+                .addClasspathResource("processes/Developer_Hiring_with_jpa.bpmn20.xml")
+                .deploy();
+
         return strings -> {
             Map<String, Object> variables = new HashMap<String, Object>();
             variables.put("applicantName", "John Doe");

@@ -4,7 +4,6 @@ import org.activiti.spring.SpringAsyncExecutor;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.activiti.spring.boot.ActivitiProperties;
 import org.activiti.spring.boot.JpaProcessEngineAutoConfiguration;
-import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -28,8 +27,6 @@ import java.lang.reflect.Method;
 @ConditionalOnClass(name = "javax.persistence.EntityManagerFactory")
 @EnableConfigurationProperties(ActivitiProperties.class)
 public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.JpaConfiguration {
-
-    private Cache defaultCache;
 
     @Bean
     @ConditionalOnMissingBean
@@ -63,6 +60,7 @@ public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.Jp
 
         result.setDataSource(parentConfig.getDataSource());
         result.setTransactionManager(parentConfig.getTransactionManager());
+        result.setDatabaseSchemaUpdate("create-drop");
 
         return result;
     }
@@ -82,7 +80,7 @@ public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.Jp
         CachedConfigurationHandler(org.apache.ibatis.session.Configuration configuration) {
             this.configuration = configuration;
 
-            this.configuration.addCache(defaultCache = new IgniteCacheAdapter("testIgnite"));
+            this.configuration.addCache(IgniteCacheAdapter.INSTANCE);
         }
 
         @Override
@@ -90,7 +88,7 @@ public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.Jp
             Object originalResult = method.invoke(configuration, args);
 
             if (method.getName().equals("getMappedStatement")) {
-                getCachedMappedStatement((MappedStatement) originalResult);
+                return getCachedMappedStatement((MappedStatement) originalResult);
             }
 
             return originalResult;
@@ -107,7 +105,8 @@ public class CachedJpaConfiguration extends JpaProcessEngineAutoConfiguration.Jp
                 .statementType(mappedStatement.getStatementType())
                 .resultSetType(mappedStatement.getResultSetType())
                 .parameterMap(mappedStatement.getParameterMap())
-                .cache(defaultCache)
+                .resultMaps(mappedStatement.getResultMaps())
+                .cache(IgniteCacheAdapter.INSTANCE)
                 .useCache(true)
                 .build();
     }

@@ -34,22 +34,11 @@ import ru.kmorozov.activiti.demo.config.LocalH2Config;
 
 import java.util.concurrent.locks.ReadWriteLock;
 
-/**
- * Cache adapter for Ignite. Cache is initialized from IGNITE_HOME/config/default-config.xml settings, otherwise default
- * one is started.
- *
- * @author Roman Shtykh
- */
 public final class IgniteCacheAdapter implements Cache {
     /**
      * Logger.
      */
     private static final Log log = LogFactory.getLog(IgniteCacheAdapter.class);
-
-    /**
-     * Cache id.
-     */
-    private final String id;
 
     /**
      * {@code ReadWriteLock}.
@@ -66,16 +55,18 @@ public final class IgniteCacheAdapter implements Cache {
      */
     private final IgniteCache cache;
 
+    private static final String DEFAULT_CACHE_NAME = "myBatisCache";
+
     static {
         boolean started = false;
         try {
-            Ignition.ignite();
+            Ignition.ignite("testGrid");
             started = true;
         } catch (IgniteIllegalStateException e) {
             log.debug("Using the Ignite instance that has been already started.");
         }
         if (started)
-            ignite = Ignition.ignite();
+            ignite = Ignition.ignite("testGrid");
         else {
             IgniteConfiguration igniteCfg = new IgniteConfiguration();
             igniteCfg.setGridName("testGrid");
@@ -83,7 +74,7 @@ public final class IgniteCacheAdapter implements Cache {
             igniteCfg.setIgniteHome("E:\\Portable\\Apache\\apache-ignite-fabric-1.7.0-bin");
 
             CacheConfiguration config = new CacheConfiguration();
-            config.setName("myBatisCache");
+            config.setName(DEFAULT_CACHE_NAME);
             config.setCacheMode(CacheMode.LOCAL);
             config.setStatisticsEnabled(true);
             config.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
@@ -104,32 +95,15 @@ public final class IgniteCacheAdapter implements Cache {
         }
     }
 
+    public static final IgniteCacheAdapter INSTANCE = new IgniteCacheAdapter();
+
     /**
      * Constructor.
      *
-     * @param id Cache id.
      */
     @SuppressWarnings("unchecked")
-    public IgniteCacheAdapter(String id) {
-        if (id == null)
-            throw new IllegalArgumentException("Cache instances require an ID");
-
-        CacheConfiguration cacheCfg = new CacheConfiguration();
-        cacheCfg.setName(id);
-        cacheCfg.setCacheMode(CacheMode.LOCAL);
-        cacheCfg.setStatisticsEnabled(true);
-        cacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
-
-        cacheCfg.setEvictionPolicy(null);
-        cacheCfg.setCacheLoaderFactory(null);
-        cacheCfg.setCacheWriterFactory(null);
-
-        // overrides template cache name with the specified id.
-        cacheCfg.setName(id);
-
-        cache = ignite.getOrCreateCache(cacheCfg);
-
-        this.id = id;
+    private IgniteCacheAdapter() {
+        cache = ignite.getOrCreateCache(DEFAULT_CACHE_NAME);
     }
 
     /**
@@ -137,7 +111,7 @@ public final class IgniteCacheAdapter implements Cache {
      */
     @Override
     public String getId() {
-        return this.id;
+        return DEFAULT_CACHE_NAME;
     }
 
     /**

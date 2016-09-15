@@ -3,12 +3,13 @@ package ru.kmorozov.activiti.demo.data;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.io.Serializable;
 
 /**
  * Created by sbt-morozov-kv on 12.09.2016.
  */
 @Entity
-public class Applicant {
+public class Applicant implements Serializable {
 
     @Id
     @GeneratedValue
