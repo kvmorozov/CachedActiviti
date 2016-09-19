@@ -16,94 +16,36 @@
 package ru.kmorozov.activiti.demo.ignite;
 
 import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
-import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.IgniteIllegalStateException;
-import org.apache.ignite.Ignition;
-import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.CachePeekMode;
-import org.apache.ignite.cache.CacheWriteSynchronizationMode;
-import org.apache.ignite.configuration.CacheConfiguration;
-import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.jdbc.TcpDiscoveryJdbcIpFinder;
-import ru.kmorozov.activiti.demo.config.LocalH2Config;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.locks.ReadWriteLock;
 
 public final class IgniteCacheAdapter implements Cache {
-    /**
-     * Logger.
-     */
-    private static final Log log = LogFactory.getLog(IgniteCacheAdapter.class);
 
+    private static final String DEFAULT_CACHE_NAME = "myBatisCache";
     /**
      * {@code ReadWriteLock}.
      */
     private final ReadWriteLock readWriteLock = new DummyReadWriteLock();
 
-    /**
-     * Grid instance.
-     */
-    private static final Ignite ignite;
+    @Autowired
+    private IgniteProvider igniteProvider;
 
     /**
      * Cache.
      */
     private final IgniteCache cache;
 
-    private static final String DEFAULT_CACHE_NAME = "myBatisCache";
-
-    static {
-        boolean started = false;
-        try {
-            Ignition.ignite("testGrid");
-            started = true;
-        } catch (IgniteIllegalStateException e) {
-            log.debug("Using the Ignite instance that has been already started.");
-        }
-        if (started)
-            ignite = Ignition.ignite("testGrid");
-        else {
-            IgniteConfiguration igniteCfg = new IgniteConfiguration();
-            igniteCfg.setGridName("testGrid");
-            igniteCfg.setClientMode(false);
-            igniteCfg.setIgniteHome("E:\\Portable\\Apache\\apache-ignite-fabric-1.7.0-bin");
-
-            CacheConfiguration config = new CacheConfiguration();
-            config.setName(DEFAULT_CACHE_NAME);
-            config.setCacheMode(CacheMode.LOCAL);
-            config.setStatisticsEnabled(true);
-            config.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
-            igniteCfg.setCacheConfiguration(config);
-
-            TcpDiscoverySpi tcpDiscoverySpi = new TcpDiscoverySpi();
-            TcpDiscoveryJdbcIpFinder jdbcIpFinder = new TcpDiscoveryJdbcIpFinder();
-            jdbcIpFinder.setDataSource((new LocalH2Config()).dataSource());
-            tcpDiscoverySpi.setIpFinder(jdbcIpFinder);
-            tcpDiscoverySpi.setLocalAddress("localhost");
-            igniteCfg.setDiscoverySpi(tcpDiscoverySpi);
-
-            TcpCommunicationSpi tcpCommunicationSpi = new TcpCommunicationSpi();
-            tcpCommunicationSpi.setLocalAddress("localhost");
-            igniteCfg.setCommunicationSpi(tcpCommunicationSpi);
-
-            ignite = Ignition.start(igniteCfg);
-        }
-    }
-
     public static final IgniteCacheAdapter INSTANCE = new IgniteCacheAdapter();
 
     /**
      * Constructor.
-     *
      */
     @SuppressWarnings("unchecked")
     private IgniteCacheAdapter() {
-        cache = ignite.getOrCreateCache(DEFAULT_CACHE_NAME);
+        cache = igniteProvider.getIgnite().getOrCreateCache(DEFAULT_CACHE_NAME);
     }
 
     /**

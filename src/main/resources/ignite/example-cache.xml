@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+		
+    <bean id="ignite.cfg" class="org.apache.ignite.configuration.IgniteConfiguration">
+        <!-- Set to true to enable distributed class loading for examples, default is false. -->
+        <property name="peerClassLoadingEnabled" value="false"/>
+        <property name="igniteHome" value="E:\Portable\Apache\apache-ignite-fabric-1.7.0-bin" />
+
+        <property name="gridName" value="testGrid"/>
+        <!-- Enable client mode. -->
+        <property name="clientMode" value="false"/> <!-- should be false for myBatis-->
+
+        <property name="cacheConfiguration">
+            <list>
+                <!-- Partitioned cache example configuration (Atomic mode). -->
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <!-- Set a cache name. -->
+                    <property name="name" value="myBatisCache"/>
+                    <!--<property name="atomicityMode" value="ATOMIC"/>-->
+                    <!-- Set cache mode. -->
+                    <property name="cacheMode" value="PARTITIONED"/>
+                    <property name="backups" value="1"/>
+                    <property name="statisticsEnabled" value="true" />
+                </bean>
+            </list>
+        </property>
+
+        <property name="discoverySpi">
+            <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
+                <property name="ipFinder">
+                    <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.jdbc.TcpDiscoveryJdbcIpFinder">
+                        <property name="dataSource">
+                            <bean class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+								<property name="driver">
+									<bean class="org.h2.Driver"/>
+								</property>
+                                <property name="url" value="jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false"/>
+								<property name="username" value="sa"/>
+								<property name="password" value="sa"/>
+                            </bean>
+                        </property>
+                    </bean>
+                </property>
+				<property name="localAddress" value="localhost"/>
+            </bean>
+        </property>
+		
+        <property name="communicationSpi">
+            <bean class="org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi">
+				<property name="localAddress" value="localhost"/>
+            </bean>
+        </property>
+	</bean>
+</beans>
