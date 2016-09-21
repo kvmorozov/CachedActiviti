@@ -24,17 +24,17 @@ public class IgniteProvider {
     private final Ignite ignite;
     private boolean started = false;
 
-    public IgniteProvider() {
+    public IgniteProvider(String gridName, String xmlConfig) {
         try {
-            Ignition.ignite("testGrid-client");
+            Ignition.ignite(gridName);
             started = true;
         } catch (IgniteIllegalStateException e) {
             log.debug("Using the Ignite instance that has been already started.");
         }
         if (started)
-            ignite = Ignition.ignite("testGrid-client");
+            ignite = Ignition.ignite(gridName);
         else {
-            ignite = Ignition.start("ignite/example-hello.xml");
+            ignite = Ignition.start(xmlConfig);
             ((TcpDiscoverySpi) ignite.configuration().getDiscoverySpi())
                     .getIpFinder()
                     .registerAddresses(Collections.singletonList(new InetSocketAddress("localhost", DFLT_PORT)));
