@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../ignite-spring-boot" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../ignite-spring-boot-demo" vcs="Git" />
   </component>
 </project>

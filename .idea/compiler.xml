@@ -23,10 +23,14 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="bpmn-demo" />
+        <module name="ignite-spring-boot" />
+        <module name="ignite-spring-boot-demo" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="bpmn-demo" target="1.8" />
+      <module name="ignite-spring-boot" target="1.8" />
+      <module name="ignite-spring-boot-demo" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

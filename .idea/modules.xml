@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/bpmn-demo.iml" filepath="$PROJECT_DIR$/bpmn-demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ignite-spring-boot/ignite-spring-boot.iml" filepath="$PROJECT_DIR$/../ignite-spring-boot/ignite-spring-boot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ignite-spring-boot-demo/ignite-spring-boot-demo.iml" filepath="$PROJECT_DIR$/../ignite-spring-boot-demo/ignite-spring-boot-demo.iml" />
     </modules>
   </component>
 </project>
